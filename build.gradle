@@ -1,0 +1,81 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+group = 'blackout'
+version = '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // FlatLaf for modern dark/light UI themes
+    implementation 'com.formdev:flatlaf:3.4'
+
+    // JUnit for testing
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+
+test {
+    useJUnitPlatform()
+}
+
+application {
+    mainClass = 'blackout.BlackOut'
+}
+
+shadowJar {
+    archiveBaseName.set('blackout')
+    archiveVersion.set('1.0')
+    archiveClassifier.set('all')  // Results in: blackout-1.0-all.jar
+
+    // Optional: ensure correct manifest
+    manifest {
+        attributes 'Main-Class': 'blackout.BlackOut'
+    }
+}
+
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'blackout.BlackOut'
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+
+// Custom task to run jpackage
+tasks.register('packageApp', Exec) {
+    dependsOn shadowJar
+
+    def outputDir = "$buildDir/jpackage"
+    def inputJar = "$buildDir/libs/BlackOut-1.0.jar"
+//    def inputJar = "$buildDir/libs/blackout-1.0-all.jar"
+    //def iconPath = "$projectDir/src/main/resources/icon.ico" // Use .icns or .png as needed
+
+    doFirst {
+        file(outputDir).mkdirs()
+    }
+
+    commandLine = [
+            'jpackage',
+            '--type', 'dmg',
+            '--input', "$buildDir/libs",
+            '--dest', outputDir,
+            '--name', 'BlackOut',
+            '--main-jar', 'blackout-1.0-all.jar',
+            '--main-class', 'blackout.BlackOut',
+            '--app-version', '1.0',
+            '--vendor', 'Kevin Wang',
+            '--description', 'BlackOut',
+            '--java-options', '-Dfile.encoding=UTF-8'//, '--win-console'
+    ]
+
+}

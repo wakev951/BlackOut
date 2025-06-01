@@ -66,6 +66,36 @@ tasks.register('packageApp', Exec) {
 
     commandLine = [
             'jpackage',
+            '--type', 'exe',
+            '--input', "$buildDir/libs",
+            '--dest', outputDir,
+            '--name', 'BlackOut',
+            '--main-jar', 'blackout-1.0-all.jar',
+            '--main-class', 'blackout.BlackOut',
+            '--app-version', '1.0',
+            '--vendor', 'Kevin Wang',
+            '--description', 'BlackOut',
+            '--java-options', '-Dfile.encoding=UTF-8'//, '--win-console'
+    ]
+
+}
+
+
+// Custom task to run jpackage
+tasks.register('packageAppDMG', Exec) {
+    dependsOn shadowJar
+
+    def outputDir = "$buildDir/jpackage"
+    def inputJar = "$buildDir/libs/BlackOut-1.0.jar"
+//    def inputJar = "$buildDir/libs/blackout-1.0-all.jar"
+    //def iconPath = "$projectDir/src/main/resources/icon.ico" // Use .icns or .png as needed
+
+    doFirst {
+        file(outputDir).mkdirs()
+    }
+
+    commandLine = [
+            'jpackage',
             '--type', 'dmg',
             '--input', "$buildDir/libs",
             '--dest', outputDir,
